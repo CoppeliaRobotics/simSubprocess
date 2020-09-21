@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="callbacks.xsl"?>
+
+<plugin name="Subprocess" short-name="Subprocess" author="federico.ferri.it@gmail.com">
+    <description>API functions for subprocess</description>
+    <command name="exec">
+        <description>Execute a subprocess</description>
+        <params>
+            <param name="programPath" type="string" />
+            <param name="args" type="table" item-type="string" />
+            <param name="stdin" type="string" default="" />
+            <param name="useSearchPath" type="bool" default="true" />
+        </params>
+        <return>
+            <param name="exitCode" type="int" />
+            <param name="stdout" type="string" />
+        </return>
+    </command>
+</plugin>
