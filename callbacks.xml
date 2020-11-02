@@ -8,7 +8,7 @@
         <params>
             <param name="programPath" type="string" />
             <param name="args" type="table" item-type="string" />
-            <param name="stdin" type="string" default="" />
+            <param name="stdin" type="string" default='""' />
             <param name="useSearchPath" type="bool" default="true" />
         </params>
         <return>
