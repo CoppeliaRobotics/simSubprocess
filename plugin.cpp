@@ -3,6 +3,7 @@
 #include <boost/process.hpp>
 
 #include "simPlusPlus/Plugin.h"
+#include "config.h"
 #include "plugin.h"
 #include "stubs.h"
 
