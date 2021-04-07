@@ -5,7 +5,7 @@
 1. Install required packages for [libPlugin](https://github.com/CoppeliaRobotics/libPlugin): see libPlugin's README
 2. Checkout and compile
 ```text
-$ git clone --recursive https://github.com/CoppeliaRobotics/simExtSubprocessgit
+$ git clone --recursive https://github.com/CoppeliaRobotics/simExtSubprocess.git
 $ cmake .
 $ cmake --build .
 ```
