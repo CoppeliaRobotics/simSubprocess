@@ -4,16 +4,55 @@
 <plugin name="Subprocess" author="federico.ferri.it@gmail.com">
     <description>API functions for subprocess</description>
     <command name="exec">
-        <description>Execute a subprocess</description>
+        <description>Execute a subprocess.</description>
         <params>
             <param name="programPath" type="string" />
             <param name="args" type="table" item-type="string" />
-            <param name="stdin" type="string" default='""' />
+            <param name="input" type="string" default='""' />
             <param name="useSearchPath" type="bool" default="true" />
         </params>
         <return>
             <param name="exitCode" type="int" />
-            <param name="stdout" type="string" />
+            <param name="output" type="string" />
+        </return>
+    </command>
+    <command name="execAsync">
+        <description>Execute a subprocess without waiting for termination.</description>
+        <params>
+            <param name="programPath" type="string" />
+            <param name="args" type="table" item-type="string" />
+            <param name="useSearchPath" type="bool" default="true" />
+        </params>
+        <return>
+            <param name="handle" type="string" />
+        </return>
+    </command>
+    <command name="isRunning">
+        <description>Check wether a subprocess previously launched with <command-ref name="execAsync" /> is running.</description>
+        <params>
+            <param name="handle" type="string" />
+        </params>
+        <return>
+            <param name="running" type="bool" />
+        </return>
+    </command>
+    <command name="wait">
+        <description>Wait for termination of a subprocess previously launched with <command-ref name="execAsync" />. If subprocess terminates, the exit code is returned.</description>
+        <params>
+            <param name="handle" type="string" />
+            <param name="timeout" type="float" default="5" />
+        </params>
+        <return>
+            <param name="exitCode" type="int" nullable="true" />
+        </return>
+    </command>
+    <command name="terminate">
+        <description>Forcefully terminate a subprocess previously launched with <command-ref name="execAsync" />. Because of Windows' limitations, graceful exit is not possible, and only forceful exit can be done. (see https://www.boost.org/doc/libs/1_64_0/doc/html/boost_process/concepts.html)</description>
+        <params>
+            <param name="handle" type="string" />
+        </params>
+        <return>
+            <param name="exitCode" type="int" nullable="true" />
         </return>
     </command>
 </plugin>
