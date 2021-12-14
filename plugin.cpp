@@ -131,7 +131,7 @@ public:
             throw std::runtime_error("unknown process exit status");
     }
 
-    void terminate(terminate_in *in, terminate_out *out)
+    void kill(kill_in *in, kill_out *out)
     {
         auto process = handles.get(in->handle);
         process->kill();

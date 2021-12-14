@@ -46,7 +46,7 @@
             <param name="exitCode" type="int" nullable="true" />
         </return>
     </command>
-    <command name="terminate">
+    <command name="kill">
         <description>Forcefully terminate a subprocess previously launched with <command-ref name="execAsync" />.</description>
         <params>
             <param name="handle" type="string" />
