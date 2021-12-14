@@ -102,8 +102,10 @@ public:
     {
         auto c = handles.get(in->handle);
         c->child->terminate();
+#if 0 // this freezes the app (on macOS at least)
         c->child->wait(); //to avoid a zombie process & get the exit code
         out->exitCode = c->child->exit_code();
+#endif
         delete c->child;
         delete handles.remove(c);
     }
