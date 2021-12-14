@@ -47,7 +47,7 @@
         </return>
     </command>
     <command name="terminate">
-        <description>Forcefully terminate a subprocess previously launched with <command-ref name="execAsync" />. Because of Windows' limitations, graceful exit is not possible, and only forceful exit can be done. (see https://www.boost.org/doc/libs/1_64_0/doc/html/boost_process/concepts.html)</description>
+        <description>Forcefully terminate a subprocess previously launched with <command-ref name="execAsync" />.</description>
         <params>
             <param name="handle" type="string" />
         </params>
