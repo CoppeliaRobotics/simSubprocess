@@ -46,7 +46,11 @@ public:
         QString program = QString::fromStdString(in->programPath);
         if(in->useSearchPath)
         {
+#ifdef _MSC_VER
             QString path = qEnvironmentVariable("PATH");
+#else // _MSC_VER
+            QString path = QString::fromLocal8Bit(qgetenv("PATH"));
+#endif // _MSC_VER
             if(!path.isNull())
             {
                 QStringList dirList(path.split(QDir::listSeparator()));
