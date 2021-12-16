@@ -139,6 +139,7 @@ public:
     {
         auto process = handles.get(in->handle);
         process->kill();
+        process->waitForFinished(-1);
         delete handles.remove(process);
     }
 
