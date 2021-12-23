@@ -6,10 +6,18 @@
     <command name="exec">
         <description>Execute a subprocess.</description>
         <params>
-            <param name="programPath" type="string" />
-            <param name="args" type="table" item-type="string" />
-            <param name="input" type="string" default='""' />
-            <param name="useSearchPath" type="bool" default="true" />
+            <param name="programPath" type="string">
+                <description>Program path.</description>
+            </param>
+            <param name="args" type="table" item-type="string">
+                <description>Program arguments.</description>
+            </param>
+            <param name="input" type="string" default='""'>
+                <description>Data passed to stdin.</description>
+            </param>
+            <param name="opts" type="exec_opts" default="{}">
+                <description>Options. see <struct-ref name="exec_opts"/></description>
+            </param>
         </params>
         <return>
             <param name="exitCode" type="int" />
@@ -19,9 +27,15 @@
     <command name="execAsync">
         <description>Execute a subprocess without waiting for termination.</description>
         <params>
-            <param name="programPath" type="string" />
-            <param name="args" type="table" item-type="string" />
-            <param name="useSearchPath" type="bool" default="true" />
+            <param name="programPath" type="string">
+                <description>Program path.</description>
+            </param>
+            <param name="args" type="table" item-type="string">
+                <description>Program arguments.</description>
+            </param>
+            <param name="opts" type="exec_opts" default="{}">
+                <description>Options. see <struct-ref name="exec_opts"/></description>
+            </param>
         </params>
         <return>
             <param name="handle" type="string" />
@@ -55,4 +69,12 @@
             <param name="exitCode" type="int" nullable="true" />
         </return>
     </command>
+    <struct name="exec_opts">
+        <param name="useSearchPath" type="bool" default="true">
+            <description>Resolve program name searching in PATH entries.</description>
+        </param>
+        <param name="openNewConsole" type="bool" default="false">
+            <description>Win32-specific flag.</description>
+        </param>
+    </struct>
 </plugin>

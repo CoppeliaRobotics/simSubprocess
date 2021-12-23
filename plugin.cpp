@@ -44,7 +44,7 @@ public:
     QString getProgram(const T &in)
     {
         QString program = QString::fromStdString(in->programPath);
-        if(in->useSearchPath)
+        if(in->opts.useSearchPath)
         {
 #ifdef _MSC_VER
             QString path = qEnvironmentVariable("PATH");
@@ -89,6 +89,9 @@ public:
     void exec(exec_in *in, exec_out *out)
     {
         QProcess *process = new QProcess();
+#ifdef _MSC_VER
+        process->setCreateProcessArgumentsModifier([] (QProcess::CreateProcessArguments *args) {args->flags |= CREATE_NEW_CONSOLE;});
+#endif // _MSC_VER
         process->start(getProgram(in), getArguments(in));
         if(!process->waitForStarted(-1))
             throw std::runtime_error("waitForStarted timed out");
@@ -110,6 +113,9 @@ public:
     void execAsync(execAsync_in *in, execAsync_out *out)
     {
         QProcess *process = new QProcess();
+#ifdef _MSC_VER
+        process->setCreateProcessArgumentsModifier([] (QProcess::CreateProcessArguments *args) {args->flags |= CREATE_NEW_CONSOLE;});
+#endif // _MSC_VER
         process->start(getProgram(in), getArguments(in));
         if(!process->waitForStarted(-1))
             throw std::runtime_error("waitForStarted timed out");
