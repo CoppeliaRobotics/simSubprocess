@@ -86,8 +86,18 @@ public:
         return ret;
     }
 
+    template<class T>
+    void checkAuth(const T &in)
+    {
+        QString prog = getProgram(in);
+        QString args = prog + " " + getArguments(in).join(" ");
+        if(!simCheckExecAuthorization("", args.toLocal8Bit().data()))
+            throw std::runtime_error("Permission denied (by user)");
+    }
+
     void exec(exec_in *in, exec_out *out)
     {
+        checkAuth(in);
         QProcess *process = new QProcess();
 #ifdef _MSC_VER
         process->setCreateProcessArgumentsModifier([] (QProcess::CreateProcessArguments *args) {args->flags |= CREATE_NEW_CONSOLE;});
@@ -112,6 +122,7 @@ public:
 
     void execAsync(execAsync_in *in, execAsync_out *out)
     {
+        checkAuth(in);
         QProcess *process = new QProcess();
 #ifdef _MSC_VER
         process->setCreateProcessArgumentsModifier([] (QProcess::CreateProcessArguments *args) {args->flags |= CREATE_NEW_CONSOLE;});
