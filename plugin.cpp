@@ -108,7 +108,7 @@ public:
         checkAuth(in);
         QProcess *process = new QProcess();
 #ifdef _MSC_VER
-        process->setCreateProcessArgumentsModifier([] (QProcess::CreateProcessArguments *args) {
+        process->setCreateProcessArgumentsModifier([=] (QProcess::CreateProcessArguments *args) {
             if(in->opts.openNewConsole)
                 args->flags |= CREATE_NEW_CONSOLE;
         });
