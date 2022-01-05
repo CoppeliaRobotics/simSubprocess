@@ -89,9 +89,11 @@ public:
     template<class T>
     void checkAuth(const T &in)
     {
+        QString caller = "<caller>";
+        QString what = QString("%1 (via simExtSubprocess)").arg(caller);
         QString prog = getProgram(in);
         QString args = prog + " " + getArguments(in).join(" ");
-        if(!simCheckExecAuthorization("", args.toLocal8Bit().data()))
+        if(!simCheckExecAuthorization(what.toLocal8Bit().data(), args.toLocal8Bit().data()))
             throw std::runtime_error("Permission denied (by user)");
     }
 
