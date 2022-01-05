@@ -89,7 +89,13 @@ public:
     template<class T>
     void checkAuth(const T &in)
     {
-        QString caller = "<caller>";
+        QString caller = "<unknown caller>";
+        simInt paramLength = 0;
+        simChar *paramData = simGetScriptStringParam(in->_.scriptID, sim_scriptstringparam_description, &paramLength);
+        if(paramData) {
+            QByteArray rawParam(paramData, paramLength);
+            caller = QString(rawParam);
+        }
         QString what = QString("%1 (via simExtSubprocess)").arg(caller);
         QString prog = getProgram(in);
         QString args = prog + " " + getArguments(in).join(" ");
