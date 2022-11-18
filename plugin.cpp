@@ -90,8 +90,8 @@ public:
     void checkAuth(const T &in)
     {
         QString caller = "<unknown caller>";
-        simInt paramLength = 0;
-        simChar *paramData = simGetScriptStringParam(in->_.scriptID, sim_scriptstringparam_description, &paramLength);
+        int paramLength = 0;
+        char *paramData = simGetScriptStringParam(in->_.scriptID, sim_scriptstringparam_description, &paramLength);
         if(paramData) {
             QByteArray rawParam(paramData, paramLength);
             caller = QString(rawParam);
