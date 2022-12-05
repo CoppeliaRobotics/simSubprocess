@@ -9,7 +9,7 @@
 #include <QProcess>
 
 #include "simPlusPlus/Plugin.h"
-#include "simPlusPlus/Handle.h"
+#include "simPlusPlus/Handles.h"
 #include "config.h"
 #include "plugin.h"
 #include "stubs.h"
@@ -17,8 +17,6 @@
 using std::string;
 using std::vector;
 using std::runtime_error;
-
-template<> string sim::Handle<QProcess>::tag() { return "simSubprocess.child"; }
 
 class Plugin : public sim::Plugin
 {
@@ -175,7 +173,7 @@ public:
     }
 
 private:
-    sim::Handles<QProcess> handles;
+    sim::Handles<QProcess*> handles{"simSubprocess.child"};
 };
 
 SIM_PLUGIN(PLUGIN_NAME, PLUGIN_VERSION, Plugin)
