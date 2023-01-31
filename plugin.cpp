@@ -88,16 +88,13 @@ public:
     void checkAuth(const T &in)
     {
         QString caller = "<unknown caller>";
-        int paramLength = 0;
-        char *paramData = simGetScriptStringParam(in->_.scriptID, sim_scriptstringparam_description, &paramLength);
-        if(paramData) {
-            QByteArray rawParam(paramData, paramLength);
-            caller = QString(rawParam);
-        }
+        auto paramData = sim::getScriptStringParamOpt(in->_.scriptID, sim_scriptstringparam_description);
+        if(paramData)
+            caller = QString::fromStdString(*paramData);
         QString what = QString("%1 (via simExtSubprocess)").arg(caller);
         QString prog = getProgram(in);
         QString args = prog + " " + getArguments(in).join(" ");
-        if(!simCheckExecAuthorization(what.toLocal8Bit().data(), args.toLocal8Bit().data()))
+        if(!sim::checkExecAuthorization(what.toStdString(), args.toStdString()))
             throw std::runtime_error("Permission denied (by user)");
     }
 
