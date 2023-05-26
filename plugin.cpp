@@ -108,6 +108,8 @@ public:
                 args->flags |= CREATE_NEW_CONSOLE;
         });
 #endif // _MSC_VER
+        if(in->opts.workingDir)
+            process->setWorkingDirectory(QString::fromStdString(*in->opts.workingDir));
         process->start(getProgram(in), getArguments(in));
         if(!process->waitForStarted(-1))
             throw std::runtime_error("waitForStarted timed out");
@@ -136,6 +138,8 @@ public:
                 args->flags |= CREATE_NEW_CONSOLE;
         });
 #endif // _MSC_VER
+        if(in->opts.workingDir)
+            process->setWorkingDirectory(QString::fromStdString(*in->opts.workingDir));
         process->start(getProgram(in), getArguments(in));
         if(!process->waitForStarted(-1))
             throw std::runtime_error("waitForStarted timed out");

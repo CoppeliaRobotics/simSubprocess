@@ -76,5 +76,8 @@
         <param name="openNewConsole" type="bool" default="false">
             <description>Win32-specific flag.</description>
         </param>
+        <param name="workingDir" type="string" nullable="true">
+            <description>Start process in a specific working directory.</description>
+        </param>
     </struct>
 </plugin>
