@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.11)
-project(simExtSubprocess)
+project(simSubprocess)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_MACOSX_RPATH 1)
@@ -25,6 +25,6 @@ coppeliasim_generate_stubs(${CMAKE_CURRENT_BINARY_DIR}/generated XML_FILE ${CMAK
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
-coppeliasim_add_plugin(simExtSubprocess SOURCES plugin.cpp)
-target_link_libraries(simExtSubprocess Boost::filesystem)
-target_link_libraries(simExtSubprocess Qt5::Core)
+coppeliasim_add_plugin(simSubprocess SOURCES plugin.cpp)
+target_link_libraries(simSubprocess Boost::filesystem)
+target_link_libraries(simSubprocess Qt5::Core)

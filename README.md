@@ -5,8 +5,8 @@
 1. Install required packages for simStubsGen: see simStubsGen's [README](https://github.com/CoppeliaRobotics/include/blob/master/simStubsGen/README.md)
 2. Checkout, compile and install into CoppeliaSim:
 ```sh
-$ git clone https://github.com/CoppeliaRobotics/simExtSubprocess.git
-$ cd simExtSubprocess
+$ git clone https://github.com/CoppeliaRobotics/simSubprocess.git
+$ cd simSubprocess
 $ git checkout coppeliasim-v4.5.0-rev0
 $ mkdir -p build && cd build
 $ cmake -DCMAKE_BUILD_TYPE=Release ..
