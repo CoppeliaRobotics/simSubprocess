@@ -1,5 +1,5 @@
-local simSubprocess=loadPlugin'simSubprocess'
+local simSubprocess=loadPlugin'simSubprocess';
 
-(require'simSubprocess-typecheck')(simSubprocess)
+;(require'simSubprocess-typecheck')(simSubprocess)
 
 return simSubprocess
