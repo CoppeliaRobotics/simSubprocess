@@ -12,7 +12,7 @@
             <param name="args" type="table" item-type="string">
                 <description>Program arguments.</description>
             </param>
-            <param name="input" type="string" default='""'>
+            <param name="input" type="buffer" default='""'>
                 <description>Data passed to stdin.</description>
             </param>
             <param name="opts" type="exec_opts" default="{}">
@@ -21,7 +21,7 @@
         </params>
         <return>
             <param name="exitCode" type="int" />
-            <param name="output" type="string" />
+            <param name="output" type="buffer" />
         </return>
     </command>
     <command name="execAsync">
