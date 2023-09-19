@@ -173,6 +173,12 @@ public:
         delete handles.remove(process);
     }
 
+    void getpid(getpid_in *in, getpid_out *out)
+    {
+        auto process = handles.get(in->handle);
+        out->pid = process->processId();
+    }
+
 private:
     sim::Handles<QProcess*> handles{"simSubprocess.child"};
 };
