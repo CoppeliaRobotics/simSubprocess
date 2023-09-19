@@ -91,7 +91,7 @@ public:
         auto paramData = sim::getScriptStringParamOpt(in->_.scriptID, sim_scriptstringparam_description);
         if(paramData)
             caller = QString::fromStdString(*paramData);
-        QString what = QString("%1 (via simExtSubprocess)").arg(caller);
+        QString what = QString("%1 (via simSubprocess)").arg(caller);
         QString prog = getProgram(in);
         QString args = prog + " " + getArguments(in).join(" ");
         if(!sim::checkExecAuthorization(what.toStdString(), args.toStdString()))
