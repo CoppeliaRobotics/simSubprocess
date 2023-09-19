@@ -132,6 +132,7 @@ public:
     {
         checkAuth(in);
         QProcess *process = new QProcess();
+        process->setProcessChannelMode(QProcess::ForwardedChannels);
 #ifdef _MSC_VER
         process->setCreateProcessArgumentsModifier([=] (QProcess::CreateProcessArguments *args) {
             if(in->opts.openNewConsole)
