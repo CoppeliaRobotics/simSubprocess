@@ -5,7 +5,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_MACOSX_RPATH 1)
 
 find_package(Boost REQUIRED COMPONENTS filesystem)
-find_package(Qt5 COMPONENTS Core REQUIRED)
+
+set(Qt Qt5 CACHE STRING "Qt version to use (e.g. Qt5)")
+set_property(CACHE Qt PROPERTY STRINGS Qt5 Qt6)
+find_package(${Qt} COMPONENTS Core REQUIRED)
 
 if(NOT COPPELIASIM_INCLUDE_DIR)
     if(DEFINED ENV{COPPELIASIM_ROOT_DIR})
@@ -27,4 +30,4 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sourceCode/config.h.in ${CMAKE_CURREN
 
 coppeliasim_add_plugin(simSubprocess SOURCES sourceCode/plugin.cpp)
 target_link_libraries(simSubprocess PRIVATE Boost::filesystem)
-target_link_libraries(simSubprocess PRIVATE Qt5::Core)
+target_link_libraries(simSubprocess PRIVATE ${Qt}::Core)
