@@ -30,9 +30,9 @@ public:
         setBuildDate(BUILD_DATE);
     }
 
-    void onScriptStateDestroyed(int scriptID)
+    void onScriptStateAboutToBeDestroyed(int scriptHandle)
     {
-        for(auto c : handles.find(scriptID))
+        for(auto c : handles.find(scriptHandle))
         {
             delete handles.remove(c);
         }
