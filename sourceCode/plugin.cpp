@@ -117,8 +117,10 @@ public:
         process->closeWriteChannel();
         if(!process->waitForFinished(-1))
             throw std::runtime_error("waitForFinished timed out");
-        QByteArray outData = process->readAllStandardOutput();
-        out->output = std::string(outData.constData(), outData.length());
+        QByteArray stdOutData = process->readAllStandardOutput();
+        out->stdOut = std::string(stdOutData.constData(), stdOutData.length());
+        QByteArray stdErrData = process->readAllStandardError();
+        out->stdErr = std::string(stdErrData.constData(), stdErrData.length());
         if(process->exitStatus() == QProcess::NormalExit)
             out->exitCode = process->exitCode();
         else if(process->exitStatus() == QProcess::CrashExit)

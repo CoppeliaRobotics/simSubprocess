@@ -21,7 +21,8 @@
         </params>
         <return>
             <param name="exitCode" type="int" />
-            <param name="output" type="buffer" />
+            <param name="stdOut" type="buffer" />
+            <param name="stdErr" type="buffer" />
         </return>
     </command>
     <command name="execAsync">
