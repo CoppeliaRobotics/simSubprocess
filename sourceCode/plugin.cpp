@@ -8,8 +8,8 @@
 #include <QFileInfo>
 #include <QProcess>
 
-#include <simPlusPlus/Plugin.h>
-#include <simPlusPlus/Handles.h>
+#include <simPlusPlus-2/Plugin.h>
+#include <simPlusPlus-2/Handles.h>
 #include "config.h"
 #include "plugin.h"
 #include "stubs.h"
@@ -87,10 +87,10 @@ public:
     template<class T>
     void checkAuth(const T &in)
     {
-        QString caller = "<unknown caller>";
-        auto paramData = sim::getScriptStringParamOpt(in->_.scriptID, sim_scriptstringparam_description);
-        if(paramData)
-            caller = QString::fromStdString(*paramData);
+        QString caller = QString("script %1").arg(in->_.scriptID);
+        //auto paramData = sim::getScriptStringParamOpt(in->_.scriptID, sim_scriptstringparam_description);
+        //if(paramData)
+        //    caller = QString::fromStdString(*paramData);
         QString what = QString("%1 (via simSubprocess)").arg(caller);
         QString prog = getProgram(in);
         QString args = prog + " " + getArguments(in).join(" ");
