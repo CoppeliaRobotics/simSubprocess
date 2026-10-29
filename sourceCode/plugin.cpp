@@ -179,6 +179,32 @@ public:
         out->pid = process->processId();
     }
 
+    void writeStdIn(writeStdIn_in *in, writeStdIn_out *out)
+    {
+        auto process = handles.get(in->handle);
+        if(process->state() == QProcess::NotRunning)
+            throw std::runtime_error("process is not running");
+
+        QByteArray data(in->data.c_str(), int(in->data.length()));
+        qint64 n = process->write(data);
+        if(n < 0)
+            throw std::runtime_error("write to stdin failed");
+        if(n != data.length())
+            throw std::runtime_error("partial write to stdin");
+
+        // QProcess buffers writes internally and flushes via the Qt event loop.
+        // In a plugin host (CoppeliaSim) we can't rely on that loop being pumped,
+        // so flush explicitly. This blocks until the kernel accepts the bytes.
+        if(!process->waitForBytesWritten(-1))
+            throw std::runtime_error("waitForBytesWritten timed out");
+    }
+
+    void closeStdIn(closeStdIn_in *in, closeStdIn_out *out)
+    {
+        auto process = handles.get(in->handle);
+        process->closeWriteChannel();
+    }
+
 private:
     sim::Handles<QProcess*> handles{"simSubprocess.child"};
 };

@@ -79,6 +79,25 @@
             <param name="pid" type="long" />
         </return>
     </command>
+    <command name="writeStdIn">
+        <description>Write bytes to the child's stdin.</description>
+        <params>
+            <param name="handle" type="string" />
+            <param name="data" type="buffer" default='""'>
+                <description>Data passed to stdin.</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="closeStdIn">
+        <description>Close the write channel so the child sees EOF.</description>
+        <params>
+            <param name="handle" type="string" />
+        </params>
+        <return>
+        </return>
+    </command>
     <struct name="exec_opts">
         <param name="useSearchPath" type="bool" default="true">
             <description>Resolve program name searching in PATH entries.</description>
