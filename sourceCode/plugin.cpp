@@ -18,6 +18,18 @@ using std::string;
 using std::vector;
 using std::runtime_error;
 
+struct ProcessState
+{
+    explicit ProcessState(QProcess *p) : process(p) {}
+    ~ProcessState() { delete process; }
+
+    QProcess   *process;
+    QByteArray  outBuf;      // bytes of the current, incomplete stdout line
+    QByteArray  errBuf;      // same for stderr
+    bool        outClosed = false;
+    bool        errClosed = false;
+};
+
 class Plugin : public sim::Plugin
 {
 public:
@@ -143,18 +155,20 @@ public:
         process->start(getProgram(in), getArguments(in));
         if(!process->waitForStarted(-1))
             throw std::runtime_error("waitForStarted timed out");
-        out->handle = handles.add(process, in->_.scriptID);
+        out->handle = handles.add(new ProcessState(process), in->_.scriptID);
     }
 
     void isRunning(isRunning_in *in, isRunning_out *out)
     {
-        auto process = handles.get(in->handle);
+        auto st = handles.get(in->handle);
+        auto process = st->process;
         out->running = process->state() == QProcess::Running;
     }
 
     void wait(wait_in *in, wait_out *out)
     {
-        auto process = handles.get(in->handle);
+        auto st = handles.get(in->handle);
+        auto process = st->process;
         if(!process->waitForFinished(int(1000 * in->timeout)))
             return;
         if(process->exitStatus() == QProcess::NormalExit)
@@ -167,21 +181,24 @@ public:
 
     void kill(kill_in *in, kill_out *out)
     {
-        auto process = handles.get(in->handle);
+        auto st = handles.get(in->handle);
+        auto process = st->process;
         process->kill();
         process->waitForFinished(-1);
-        delete handles.remove(process);
+        delete handles.remove(st);
     }
 
     void getpid(getpid_in *in, getpid_out *out)
     {
-        auto process = handles.get(in->handle);
+        auto st = handles.get(in->handle);
+        auto process = st->process;
         out->pid = process->processId();
     }
 
     void writeStdIn(writeStdIn_in *in, writeStdIn_out *out)
     {
-        auto process = handles.get(in->handle);
+        auto st = handles.get(in->handle);
+        auto process = st->process;
         if(process->state() == QProcess::NotRunning)
             throw std::runtime_error("process is not running");
 
@@ -201,12 +218,13 @@ public:
 
     void closeStdIn(closeStdIn_in *in, closeStdIn_out *out)
     {
-        auto process = handles.get(in->handle);
+        auto st = handles.get(in->handle);
+        auto process = st->process;
         process->closeWriteChannel();
     }
 
 private:
-    sim::Handles<QProcess*> handles{"simSubprocess.child"};
+    sim::Handles<ProcessState*> handles{"simSubprocess.child"};
 };
 
 SIM_PLUGIN(Plugin)
