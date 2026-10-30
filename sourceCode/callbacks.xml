@@ -98,7 +98,28 @@
         <return>
         </return>
     </command>
+    <command name="poll">
+        <params>
+            <param name="handle" type="string"/>
+            <param name="maxLines" type="int" default="1000"/>
+        </params>
+        <return>
+            <param name="stdOut" type="table" item-type="string"/>
+            <param name="stdErr" type="table" item-type="string"/>
+            <param name="running" type="bool"/>
+            <param name="stdOutClosed" type="bool"/>
+            <param name="stdErrClosed" type="bool"/>
+            <param name="exitCode" type="int"/>
+        </return>
+    </command>
     <struct name="exec_opts">
+        <param name="captureOutput" type="bool" default="false">
+            <description>
+                Wether to capture output (QProcess::SeparateChannels) or not (QProcess::ForwardedChannels).
+                Only applies to execAsync(); exec() always captures output.
+                Use poll() to read output then.
+            </description>
+        </param>
         <param name="useSearchPath" type="bool" default="true">
             <description>Resolve program name searching in PATH entries.</description>
         </param>

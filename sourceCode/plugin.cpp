@@ -143,7 +143,10 @@ public:
     {
         checkAuth(in);
         QProcess *process = new QProcess();
-        process->setProcessChannelMode(QProcess::ForwardedChannels);
+        if(in->opts.captureOutput)
+            process->setProcessChannelMode(QProcess::SeparateChannels);
+        else
+            process->setProcessChannelMode(QProcess::ForwardedChannels);
 #ifdef _MSC_VER
         process->setCreateProcessArgumentsModifier([=] (QProcess::CreateProcessArguments *args) {
             if(in->opts.openNewConsole)
@@ -161,19 +164,17 @@ public:
     void isRunning(isRunning_in *in, isRunning_out *out)
     {
         auto st = handles.get(in->handle);
-        auto process = st->process;
-        out->running = process->state() == QProcess::Running;
+        out->running = st->process->state() == QProcess::Running;
     }
 
     void wait(wait_in *in, wait_out *out)
     {
         auto st = handles.get(in->handle);
-        auto process = st->process;
-        if(!process->waitForFinished(int(1000 * in->timeout)))
+        if(!st->process->waitForFinished(int(1000 * in->timeout)))
             return;
-        if(process->exitStatus() == QProcess::NormalExit)
-            out->exitCode = process->exitCode();
-        else if(process->exitStatus() == QProcess::CrashExit)
+        if(st->process->exitStatus() == QProcess::NormalExit)
+            out->exitCode = st->process->exitCode();
+        else if(st->process->exitStatus() == QProcess::CrashExit)
             throw std::runtime_error("the process crashed");
         else
             throw std::runtime_error("unknown process exit status");
@@ -182,28 +183,25 @@ public:
     void kill(kill_in *in, kill_out *out)
     {
         auto st = handles.get(in->handle);
-        auto process = st->process;
-        process->kill();
-        process->waitForFinished(-1);
+        st->process->kill();
+        st->process->waitForFinished(-1);
         delete handles.remove(st);
     }
 
     void getpid(getpid_in *in, getpid_out *out)
     {
         auto st = handles.get(in->handle);
-        auto process = st->process;
-        out->pid = process->processId();
+        out->pid = st->process->processId();
     }
 
     void writeStdIn(writeStdIn_in *in, writeStdIn_out *out)
     {
         auto st = handles.get(in->handle);
-        auto process = st->process;
-        if(process->state() == QProcess::NotRunning)
+        if(st->process->state() == QProcess::NotRunning)
             throw std::runtime_error("process is not running");
 
         QByteArray data(in->data.c_str(), int(in->data.length()));
-        qint64 n = process->write(data);
+        qint64 n = st->process->write(data);
         if(n < 0)
             throw std::runtime_error("write to stdin failed");
         if(n != data.length())
@@ -212,15 +210,76 @@ public:
         // QProcess buffers writes internally and flushes via the Qt event loop.
         // In a plugin host (CoppeliaSim) we can't rely on that loop being pumped,
         // so flush explicitly. This blocks until the kernel accepts the bytes.
-        if(!process->waitForBytesWritten(-1))
+        if(!st->process->waitForBytesWritten(-1))
             throw std::runtime_error("waitForBytesWritten timed out");
     }
 
     void closeStdIn(closeStdIn_in *in, closeStdIn_out *out)
     {
         auto st = handles.get(in->handle);
-        auto process = st->process;
-        process->closeWriteChannel();
+        st->process->closeWriteChannel();
+    }
+
+    static void extractLines(QByteArray &buf, std::vector<std::string> &outLines, int maxLines)
+    {
+        int start = 0;
+        int emitted = 0;
+        while(emitted < maxLines)
+        {
+            int nl = buf.indexOf('\n', start);
+            if(nl < 0) break;
+            int len = nl - start;
+            if(len > 0 && buf[start + len - 1] == '\r') --len;   // CRLF
+            outLines.emplace_back(buf.constData() + start, len);
+            start  = nl + 1;
+            ++emitted;
+        }
+        if(start > 0)
+            buf.remove(0, start);
+    }
+
+    void poll(poll_in *in, poll_out *out)
+    {
+        auto *st = handles.get(in->handle);
+        QProcess *p = st->process;
+
+        if(p->state() == QProcess::Running)
+        {
+            // waitForReadyRead() drives Qt's pipe reads from the current read
+            // channel only, so pump each channel once. With timeout 0 it is a
+            // non-blocking poll: returns immediately with whatever is available.
+            p->setReadChannel(QProcess::StandardOutput);
+            p->waitForReadyRead(0);
+            p->setReadChannel(QProcess::StandardError);
+            p->waitForReadyRead(0);
+            p->setReadChannel(QProcess::StandardOutput);
+        }
+        else
+        {
+            // Not running: make sure the exit status / code are final and any
+            // remaining bytes have been drained by QProcess.
+            p->waitForFinished(0);
+        }
+
+        // Move whatever Qt has buffered into our line buffers.
+        st->outBuf.append(p->readAllStandardOutput());
+        st->errBuf.append(p->readAllStandardError());
+
+        extractLines(st->outBuf, out->stdOut, in->maxLines);
+        extractLines(st->errBuf, out->stdErr, in->maxLines);
+
+        // EOF per channel: process gone and no partial line left over.
+        if(!st->outClosed && p->state() == QProcess::NotRunning && st->outBuf.isEmpty())
+            st->outClosed = true;
+        if(!st->errClosed && p->state() == QProcess::NotRunning && st->errBuf.isEmpty())
+            st->errClosed = true;
+
+        out->stdOutClosed = st->outClosed;
+        out->stdErrClosed = st->errClosed;
+        out->running      = (p->state() != QProcess::NotRunning);
+        out->exitCode     = (p->state() == QProcess::NotRunning &&
+                            p->exitStatus() == QProcess::NormalExit)
+                            ? p->exitCode() : 0;
     }
 
 private:
