@@ -70,6 +70,15 @@
             <param name="exitCode" type="int" nullable="true" />
         </return>
     </command>
+    <command name="killEx">
+        <params>
+            <param name="handle" type="string" />
+            <param name="delay" type="double" default="0" />
+            <param name="killDelay" type="double" default="5" />
+        </params>
+        <return>
+        </return>
+    </command>
     <command name="getpid">
         <description>Get the process identifier (OS-dependent).</description>
         <params>

@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <chrono>
 
 #include <QByteArray>
 #include <QString>
@@ -28,22 +29,81 @@ struct ProcessState
     QByteArray  errBuf;      // same for stderr
     bool        outClosed = false;
     bool        errClosed = false;
+    bool        terminating = false;
+};
+
+struct KillEntry
+{
+    ProcessState *state;
+    std::chrono::steady_clock::time_point deadline;
+    double killDelay; // seconds between terminate() and kill()
+    int    stage;    // 0 = awaiting initial delay
+                     // 1 = awaiting grace1
+                     // 2 = escalated, waiting for exit
 };
 
 class Plugin : public sim::Plugin
 {
 public:
-    void onInit()
+    void onInit() override
     {
         if(!registerScriptStuff())
             throw runtime_error("failed to register script stuff");
     }
 
-    void onScriptStateAboutToBeDestroyed(int scriptHandle, long long scriptUid)
+    void onScriptStateAboutToBeDestroyed(int scriptHandle, long long scriptUid) override
     {
-        for(auto c : handles.find(scriptHandle))
+        for(auto st : handles.find(scriptHandle))
         {
-            delete handles.remove(c);
+            killQueue.erase(
+                std::remove_if(killQueue.begin(), killQueue.end(),
+                    [st](const KillEntry &e) { return e.state == st; }),
+                killQueue.end());
+
+            delete handles.remove(st);
+        }
+    }
+
+    void onInstancePass(const sim::InstancePassFlags &flags) override
+    {
+        using clock = std::chrono::steady_clock;
+        const auto now = clock::now();
+
+        for(auto it = killQueue.begin(); it != killQueue.end(); )
+        {
+            KillEntry &e = *it;
+            QProcess  *p = e.state->process;
+
+            // Non-blocking pump: updates state/exit-code and drains the pipes
+            // (QProcess needs explicit pumping when there is no Qt event loop).
+            p->waitForFinished(0);
+
+            if(p->state() == QProcess::NotRunning)
+            {
+                // Reaped and clean: drop the handle.
+                delete handles.remove(e.state);
+                it = killQueue.erase(it);
+                continue;
+            }
+
+            if(e.stage < 2 && now >= e.deadline)
+            {
+                if(e.stage == 0)
+                {
+                    // Stage 1 — graceful
+                    p->terminate();
+                    e.stage = 1;
+                    e.deadline = now + std::chrono::duration_cast<clock::duration>(
+                        std::chrono::duration<double>(e.killDelay));
+                }
+                else // e.stage == 1
+                {
+                    // Stage 2 — forceful
+                    p->kill();
+                    e.stage = 2;   // no further deadline; just wait for exit
+                }
+            }
+            ++it;
         }
     }
 
@@ -183,10 +243,38 @@ public:
     void kill(kill_in *in, kill_out *out)
     {
         auto st = handles.get(in->handle);
+
+        // if called while a KillEntry is pending, it should cancel the schedule
+        // and take over:
+        killQueue.erase(
+            std::remove_if(killQueue.begin(), killQueue.end(),
+                [st](const KillEntry &e) { return e.state == st; }),
+            killQueue.end());
+
         st->process->kill();
         st->process->waitForFinished(-1);
+
         delete handles.remove(st);
     }
+
+    void killEx(killEx_in *in, killEx_out *)
+    {
+        auto st = handles.get(in->handle);
+
+        if(st->terminating)
+            throw std::runtime_error("killEx: process is already being terminated");
+        st->terminating = true;
+
+        using clock = std::chrono::steady_clock;
+        KillEntry e;
+        e.state = st;
+        e.killDelay = in->killDelay;
+        e.stage = 0;
+        e.deadline = clock::now() + std::chrono::duration_cast<clock::duration>(
+            std::chrono::duration<double>(in->delay));
+        killQueue.push_back(e);
+    }
+
 
     void getpid(getpid_in *in, getpid_out *out)
     {
@@ -284,6 +372,7 @@ public:
 
 private:
     sim::Handles<ProcessState*> handles{"simSubprocess.child"};
+    std::vector<KillEntry> killQueue;
 };
 
 SIM_PLUGIN(Plugin)
