@@ -51,16 +51,19 @@ public:
             throw runtime_error("failed to register script stuff");
     }
 
+    void onCleanup() override
+    {
+        for(auto st : handles.all())
+        {
+            killAndRemoveHandle(st);
+        }
+    }
+
     void onScriptStateAboutToBeDestroyed(int scriptHandle, long long scriptUid) override
     {
         for(auto st : handles.find(scriptHandle))
         {
-            killQueue.erase(
-                std::remove_if(killQueue.begin(), killQueue.end(),
-                    [st](const KillEntry &e) { return e.state == st; }),
-                killQueue.end());
-
-            delete handles.remove(st);
+            killAndRemoveHandle(st);
         }
     }
 
@@ -105,6 +108,27 @@ public:
             }
             ++it;
         }
+    }
+
+    void killAndRemoveHandle(ProcessState *st)
+    {
+        killQueue.erase(
+            std::remove_if(killQueue.begin(), killQueue.end(),
+                [st](const KillEntry &e) { return e.state == st; }),
+            killQueue.end());
+
+        QProcess *p = st->process;
+        if(p->state() != QProcess::NotRunning)
+        {
+            p->terminate();
+            if(!p->waitForFinished(500))
+            {
+                p->kill();
+                p->waitForFinished(-1);
+            }
+        }
+
+        delete handles.remove(st);
     }
 
     template<class T>
